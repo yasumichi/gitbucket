@@ -272,10 +272,8 @@ trait IssuesControllerBase extends ControllerBase {
             case t if t == "html" => html.editissue(x.content, x.issueId, repository)
           } getOrElse {
             contentType = formats("json")
-            org.json4s.jackson.Serialization.write(
-              Map(
-                "title" -> x.title,
-                "content" -> helpers.renderMarkup(
+            val re = "disabled[^<>]*>".r
+            var content = helpers.renderMarkup(
                   filePath = List("temporary.md"),
                   fileContent = x.content getOrElse "No description given.",
                   branch = repository.repository.defaultBranch,
@@ -283,7 +281,12 @@ trait IssuesControllerBase extends ControllerBase {
                   enableWikiLink = false,
                   enableRefsLink = true,
                   enableAnchor = true
-                ).toString()
+            ).toString()
+            content = re.replaceAllIn(content, ">")
+            org.json4s.jackson.Serialization.write(
+              Map(
+                "title" -> x.title,
+                "content" -> content
               )
             )
           }
@@ -300,9 +303,8 @@ trait IssuesControllerBase extends ControllerBase {
             case t if t == "html" => html.editcomment(x.content, x.commentId, repository)
           } getOrElse {
             contentType = formats("json")
-            org.json4s.jackson.Serialization.write(
-              Map(
-                "content" -> helpers.renderMarkup(
+            val re = "disabled[^<>]*>".r
+            var content = helpers.renderMarkup(
                   filePath = List("temporary.md"),
                   fileContent = x.content,
                   branch = repository.repository.defaultBranch,
@@ -311,6 +313,10 @@ trait IssuesControllerBase extends ControllerBase {
                   enableRefsLink = true,
                   enableAnchor = true
                 ).toString()
+            content = re.replaceAllIn(content, ">")
+            org.json4s.jackson.Serialization.write(
+              Map(
+                "content" -> content
               )
             )
           }
